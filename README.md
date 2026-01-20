@@ -168,48 +168,6 @@ docker-compose up -d
 
 ---
 
-## 📈 Roadmap
-
-### ✅ Fase 1 - Junior (Actual)
-- Pipeline funcional end-to-end
-- Orquestación con Airflow
-- Modelos dbt básicos
-- Validaciones básicas
-
-### 🔜 Fase 2 - Semi-Senior
-- Incremental models
-- Particionado y clustering
-- Manejo de backfills
-- Optimización de costos
-
-### 🔜 Fase 3 - Senior
-- Observabilidad completa
-- CI/CD con GitHub Actions
-- Infrastructure as Code
-- Data contracts
-
----
-
-## 🤝 Decisiones Técnicas
-
-### ¿Por qué Airflow y no Prefect/Dagster?
-- **Airflow:** Madurez, comunidad grande, más usado en Chile
-- **Trade-off:** Configuración más compleja vs más oportunidades laborales
-
-### ¿Por qué BigQuery y no Snowflake?
-- **BigQuery:** Serverless, pago por consulta, integración GCP
-- **Trade-off:** Vendor lock-in vs menor overhead operacional
-
-### ¿Por qué Docker Compose y no Kubernetes?
-- **Docker Compose:** Suficiente para scope de portafolio, más simple
-- **Trade-off:** No escalable a producción real vs facilidad de setup
-
-### ¿Por qué GCS como staging y no directo a BigQuery?
-- **GCS:** Auditabilidad, posibilidad de re-procesamiento, costo
-- **Trade-off:** Latencia adicional vs mayor resiliencia
-
----
-
 ## 📝 Convenciones de Commits
 
 - `feat:` Nueva funcionalidad
@@ -223,10 +181,206 @@ docker-compose up -d
 
 ## 📧 Contacto
 
-Heberth - [LinkedIn](#) - [GitHub](#)
+Heberth Caripa - [LinkedIn](www.linkedin.com/in/heberth-caripa) - [GitHub](https://github.com/heberth18)
 
 ---
 
 ## 📄 Licencia
+
+MIT
+
+---
+---
+
+# 🚀 E-commerce Data Engineering Pipeline
+
+**[English Version]**
+
+## 📊 Business Context
+
+**Company:** B2C e-commerce Startup in Chile  
+**Problem:** Need for reliable, reproducible, and auditable sales and customer metrics  
+**Solution:** End-to-end orchestrated, containerized, and scalable data pipeline
+
+---
+
+## 🎯 Objective
+
+Generate monthly sales and customer KPIs ready for analytical consumption (BI and decision-making).
+
+---
+
+## 🏗️ Architecture
+
+```
+FakeAPI → Airflow → GCS (Bronze) → BigQuery (Bronze) → dbt → BigQuery (Gold) → BI
+```
+
+### Data Layers
+
+1. **Bronze (Raw):** Raw data from the API, stored in GCS and BigQuery without transformations
+2. **Silver (Staging):** Basic cleaning, correct typing, deduplication
+3. **Gold (Analytics):** Dimensional models (fact/dim) and aggregated KPIs
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology | Justification |
+|-----------|------------|---------------|
+| **Orchestration** | Apache Airflow | Industry standard for complex workflows, visual monitoring, retry logic |
+| **Storage** | Google Cloud Storage | Scalable Data Lake, low cost, native BigQuery integration |
+| **Data Warehouse** | Google BigQuery | Compute/storage separation, standard SQL, optimized for analytics |
+| **Transformations** | dbt | Business logic versioning, tests, documentation as code |
+| **Containers** | Docker Compose | Reproducibility, portability, dependency isolation |
+| **Data Source** | FakeAPI | Simulates e-commerce transactional system |
+
+---
+
+## 📁 Project Structure
+
+```
+project_ecommerce/
+├── airflow/                    # Orchestration
+│   ├── dags/                   # Airflow DAGs
+│   ├── plugins/                # Custom operators
+│   ├── scripts/                # Extraction/loading scripts
+│   └── config/                 # Configurations
+├── dbt/                        # Transformations
+│   ├── models/
+│   │   ├── staging/            # Cleaning and validation
+│   │   ├── marts/
+│   │   │   ├── core/           # Facts and Dimensions
+│   │   │   └── kpis/           # Aggregated KPIs
+│   ├── tests/                  # Quality tests
+│   └── macros/                 # Reusable functions
+├── docker/                     # Docker configurations
+├── docs/                       # Technical documentation
+├── .gitignore
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 🔄 Data Pipeline
+
+### Main DAG: `ecommerce_pipeline`
+
+**Frequency:** Daily (can be adjusted to monthly for KPIs)
+
+**Tasks:**
+
+1. `extract_from_fakeapi`: Extract data from FakeAPI → GCS (JSON format)
+2. `load_to_bigquery_bronze`: Load from GCS → BigQuery (bronze tables)
+3. `dbt_run_staging`: Cleaning and validation (staging models)
+4. `dbt_run_marts`: Generate facts, dimensions and KPIs
+5. `dbt_test`: Validate data quality
+
+---
+
+## 🗂️ Data Models
+
+### Bronze (Raw)
+- `bronze_customers`
+- `bronze_products`
+- `bronze_orders`
+- `bronze_order_items`
+- `bronze_payments`
+
+### Staging
+- `stg_customers`
+- `stg_products`
+- `stg_orders`
+- `stg_order_items`
+- `stg_payments`
+
+### Marts
+- **Dimensions:**
+  - `dim_customers`
+  - `dim_products`
+  - `dim_date`
+- **Facts:**
+  - `fact_orders`
+- **KPIs:**
+  - `kpi_monthly_sales`
+  - `kpi_customer_metrics`
+
+---
+
+## 🚀 How to Run
+
+### Prerequisites
+
+1. Docker and Docker Compose installed
+2. Google Cloud Platform account
+3. GCP project created
+4. Service Account with permissions:
+   - BigQuery Admin
+   - Storage Admin
+
+### Initial Setup
+
+```bash
+# 1. Clone repository
+git clone <repo-url>
+cd project_ecommerce
+
+# 2. Configure environment variables
+cp env.example .env
+# Edit .env with your GCP credentials
+
+# 3. Place service account key
+# Save JSON file to: ./secrets/gcp-service-account.json
+
+# 4. Start services
+docker-compose up -d
+
+# 5. Access Airflow
+# http://localhost:8080
+# User: airflow
+# Password: airflow
+```
+
+---
+
+## 📊 Implemented KPIs (Phase 1)
+
+1. **Total Monthly Sales:** Revenue aggregated by month
+2. **Order Quantity:** Total processed orders
+3. **Average Ticket:** Average value per order
+4. **Active Customers:** Unique customers with purchases in the period
+5. **Best-Selling Products:** Top 10 products by quantity
+
+---
+
+## 🧪 Validations and Tests
+
+- **Uniqueness:** Unique primary keys in facts and dimensions
+- **Completeness:** Non-null mandatory fields
+- **Relationships:** Valid foreign keys
+- **Range:** Positive amounts, valid dates
+
+---
+
+## 📝 Commit Conventions
+
+- `feat:` New functionality
+- `fix:` Bug fixes
+- `test:` Add tests
+- `docs:` Documentation
+- `refactor:` Code improvements without changing functionality
+- `perf:` Performance optimizations
+
+---
+
+## 📧 Contact
+
+Heberth Caripa - [LinkedIn](www.linkedin.com/in/heberth-caripa) - [GitHub](https://github.com/heberth18)
+
+---
+
+## 📄 License
 
 MIT
