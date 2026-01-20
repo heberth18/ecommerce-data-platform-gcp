@@ -1,0 +1,28 @@
+# Configuración de Git para manejo de archivos
+
+# Line endings
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.parquet binary
+
+# Archives
+*.zip binary
+*.tar.gz binary
+
+# Linguist (GitHub language detection)
+*.sql linguist-detectable=true
+*.py linguist-detectable=true
+docs/* linguist-documentation
+*.md linguist-documentation
